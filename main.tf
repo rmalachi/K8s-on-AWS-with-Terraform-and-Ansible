@@ -33,7 +33,7 @@ resource "aws_subnet" "wdgtl-private-subnet" {
   }
 }
 
-resource "aws_internet_gateway" "tfrm-gw" {
+resource "aws_internet_gateway" "wdgtl-gw" {
   vpc_id = aws_vpc.wdgtl-vpc.id
 
   tags = {
@@ -114,7 +114,9 @@ resource "aws_instance" "k8s_master" {
     Name = "k8s-master"
   }
   key_name        = aws_key_pair.k8s.key_name
-  security_groups = ["k8s_master_sg"]
+  # security_groups = ["k8s_master_sg"]
+  vpc_security_group_ids = [aws_security_group.wdgtl-gw.id]
+  subnet_id              = aws_subnet.wdgtl-public-subnet.id
 
   connection {
     type        = "ssh"
@@ -146,7 +148,9 @@ resource "aws_instance" "k8s_worker" {
     Name = "k8s-worker-${count.index}"
   }
   key_name        = aws_key_pair.k8s.key_name
-  security_groups = ["k8s_worker_sg"]
+  # security_groups = ["k8s_worker_sg"]
+  vpc_security_group_ids = [aws_security_group.wdgtl-gw.id]
+  subnet_id              = aws_subnet.wdgtl-public-subnet.id
   depends_on      = [aws_instance.k8s_master]
   connection {
     type        = "ssh"
