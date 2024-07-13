@@ -23,7 +23,7 @@ resource "aws_subnet" "wdgtl-public-subnet" {
 resource "aws_subnet" "wdgtl-private-subnet" {
   vpc_id                  = aws_vpc.wdgtl-vpc.id
   cidr_block              = "20.0.2.0/24"
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   availability_zone       = "us-east-1a"
 
   tags = {
@@ -31,6 +31,7 @@ resource "aws_subnet" "wdgtl-private-subnet" {
   }
 }
 
+/*
 resource "aws_internet_gateway" "wdgtl-gw" {
   vpc_id = aws_vpc.wdgtl-vpc.id
 
@@ -39,7 +40,6 @@ resource "aws_internet_gateway" "wdgtl-gw" {
   }
 }
 
-/* 
 resource "aws_route_table" "tfrm-public-rt" {
   vpc_id = aws_vpc.tfrm-vpc.id
 
@@ -88,9 +88,10 @@ resource "aws_instance" "dev-node" {
 resource "aws_instance" "k8s_master" {
   ami                         = var.ami["master"]
   instance_type               = var.instance_type["master"]
-  key_name                    = aws_key_pair.k8s.key_name
-  vpc_security_group_ids      = [aws_security_group.wdgtl-master-sg.id]
-  subnet_id                   = aws_subnet.wdgtl-public-subnet.id
+  // key_name                 = aws_key_pair.k8s.key_name
+  // vpc_security_group_ids   = [aws_security_group.wdgtl-master-sg.id]
+  security_groups             = ["default"]
+  //subnet_id                 = aws_subnet.wdgtl-public-subnet.id
   associate_public_ip_address = true
 
   tags = {
@@ -124,8 +125,9 @@ resource "aws_instance" "k8s_worker" {
   ami                         = var.ami["worker"]
   instance_type               = var.instance_type["worker"]
   key_name                    = aws_key_pair.k8s.key_name
-  vpc_security_group_ids      = [aws_security_group.wdgtl-worker-sg.id]
-  subnet_id                   = aws_subnet.wdgtl-public-subnet.id
+  // vpc_security_group_ids   = [aws_security_group.wdgtl-worker-sg.id]
+  security_groups             = ["default"]
+  //subnet_id                 = aws_subnet.wdgtl-public-subnet.id
   depends_on                  = [aws_instance.k8s_master]
   associate_public_ip_address = true
 
