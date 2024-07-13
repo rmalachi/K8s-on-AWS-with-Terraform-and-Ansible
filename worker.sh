@@ -67,17 +67,35 @@ modprobe br_netfilter
 sysctl -p /etc/sysctl.conf
 
 # Install kubectl, kubelet and kubeadm
-echo "-------------Installing Kubectl, Kubelet and Kubeadm-------------"
-apt-get update && sudo apt-get install -y apt-transport-https curl
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+# --------------------------------------------------------------------------------------
+#                   ORIGINAL SECTION
+# --------------------------------------------------------------------------------------
+# echo "-------------Installing Kubectl, Kubelet and Kubeadm-------------"
+# apt-get update && sudo apt-get install -y apt-transport-https curl
+# curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 
-cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
-deb https://apt.kubernetes.io/ kubernetes-xenial main
-EOF
+# cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+# deb https://apt.kubernetes.io/ kubernetes-xenial main
+# EOF
 
-apt update -y
-apt install -y kubelet kubeadm kubectl
-sudo apt-mark hold kubelet kubeadm kubectl
+# apt update -y
+# apt install -y kubelet kubeadm kubectl
+# sudo apt-mark hold kubelet kubeadm kubectl
+
+# --------------------------------------------------------------------------------------
+#                   NEW SECTION
+# --------------------------------------------------------------------------------------
+
+apt-get install -y apt-transport-https ca-certificates curl
+mkdir /etc/apt/keyrings
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
+
+apt-get update -y
+apt-get install -y kubelet kubeadm kubectl
+apt-mark hold kubelet kubeadm kubectl
+# --------------------------------------------------------------------------------------
+
 
 echo "-------------Printing Kubeadm version-------------"
 kubeadm version
