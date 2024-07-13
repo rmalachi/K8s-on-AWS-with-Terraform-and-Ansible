@@ -1,6 +1,6 @@
-resource "aws_security_group" "k8s_master" {
-  name        = "k8s_master_sg"
-  description = "k8s_master Security Group"
+resource "aws_security_group" "wdgtl-master-sg" {
+  name        = "wdgtl-master-sg"
+  description = "wdgtl-master Security Group"
 
   ingress {
     description      = "SSH"
@@ -74,13 +74,13 @@ resource "aws_security_group" "k8s_master" {
   }
 
   tags = {
-    Name = "k8s_master_sg"
+    Name = "wdgtl-master-sg"
   }
 }
 
-resource "aws_security_group" "k8s_worker" {
-  name        = "k8s_worker_sg"
-  description = "k8s_worker Security Group"
+resource "aws_security_group" "wdgtl-worker-sg" {
+  name        = "wdgtl-worker-sg"
+  description = "wdgtl-worker Security Group"
 
   ingress {
     description      = "SSH"
@@ -136,7 +136,7 @@ resource "aws_security_group" "k8s_worker" {
   }
 
   tags = {
-    Name = "k8s_worker_sg"
+    Name = "wdgtl-worker-sg"
   }
 }
 
