@@ -24,15 +24,8 @@ resource "aws_instance" "k8s_master" {
       "sudo sh /home/ubuntu/master.sh k8s-master"
     ]
   }
-  provisioner "local-exec" {
-      command = "chmod 755 k8s.pub"
-      interpreter = ["bash", "-c" ]
-  }
 provisioner "local-exec" {
-    # command = "ansible-playbook -i '${self.public_ip},' playbook.yml"
-    # interpreter = ["bash", "-c" ]
-    
-    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i k8s.pub ubuntu@${self.public_ip}:~/join-command.sh ."
+    command = "ansible-playbook -i '${self.public_ip},' playbook.yml"
   }
 }
 
