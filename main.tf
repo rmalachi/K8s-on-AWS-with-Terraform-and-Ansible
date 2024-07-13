@@ -69,6 +69,7 @@ resource "aws_security_group" "wdgtl-worker-sg" {
   description = "wdgtl worker security group"
   vpc_id      = aws_vpc.wdgtl-vpc.id
 
+  /*
   ingress {
     cidr_blocks = [
       "0.0.0.0/0"
@@ -77,15 +78,14 @@ resource "aws_security_group" "wdgtl-worker-sg" {
     to_port = 22
     protocol = "tcp"
   }
+  */
 
-  /*
   ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  */
 
   egress {
     from_port   = 0
