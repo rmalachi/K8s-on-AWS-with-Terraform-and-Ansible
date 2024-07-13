@@ -33,6 +33,70 @@ resource "aws_subnet" "wdgtl-private-subnet" {
   }
 }
 
+resource "aws_security_group" "wdgtl-master-sg" {
+  name        = "wdgtl-master-sg"
+  description = "wdgtl master security group"
+  vpc_id      = aws_vpc.wdgtl-vpc.id
+
+  ingress {
+    cidr_blocks = [
+      "0.0.0.0/0"
+    ]
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+  }
+
+  /*
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  */
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "wdgtl-worker-sg" {
+  name        = "wdgtl-worker-sg"
+  description = "wdgtl worker security group"
+  vpc_id      = aws_vpc.wdgtl-vpc.id
+
+  ingress {
+    cidr_blocks = [
+      "0.0.0.0/0"
+    ]
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+  }
+
+  /*
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  */
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+
+
 resource "aws_internet_gateway" "wdgtl-gw" {
   vpc_id = aws_vpc.wdgtl-vpc.id
 
@@ -59,26 +123,6 @@ resource "aws_route" "default-route" {
 resource "aws_route_table_association" "tfrm-public-assoc" {
   subnet_id      = aws_subnet.tfrm-public-subnet.id
   route_table_id = aws_route_table.tfrm-public-rt.id
-}
-
-resource "aws_security_group" "tfrm-sg" {
-  name        = "dev-sg"
-  description = "dev security group"
-  vpc_id      = aws_vpc.tfrm-vpc.id
-
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 resource "aws_key_pair" "tfrm-auth" {
@@ -114,9 +158,8 @@ resource "aws_instance" "k8s_master" {
     Name = "k8s-master"
   }
   key_name        = aws_key_pair.k8s.key_name
-  # security_groups = ["k8s_master_sg"]
-  vpc_security_group_ids = [aws_security_group.wdgtl-gw.id]
-  subnet_id              = aws_subnet.wdgtl-public-subnet.id
+  security_groups = [aws_security_group.wdgtl-maser-sg.id]
+  subnet_id       = aws_subnet.wdgtl-public-subnet.id
 
   connection {
     type        = "ssh"
@@ -147,11 +190,10 @@ resource "aws_instance" "k8s_worker" {
   tags = {
     Name = "k8s-worker-${count.index}"
   }
-  key_name        = aws_key_pair.k8s.key_name
-  # security_groups = ["k8s_worker_sg"]
-  vpc_security_group_ids = [aws_security_group.wdgtl-gw.id]
+  key_name               = aws_key_pair.k8s.key_name
+  vpc_security_group_ids = [aws_security_group.wdgtl-worker-sg.id]
   subnet_id              = aws_subnet.wdgtl-public-subnet.id
-  depends_on      = [aws_instance.k8s_master]
+  depends_on             = [aws_instance.k8s_master]
   connection {
     type        = "ssh"
     user        = "ubuntu"
