@@ -43,19 +43,11 @@ resource "aws_security_group" "wdgtl-master-sg" {
   }
 
   ingress {
-    cidr_blocks = [
-      "0.0.0.0/0"
-    ]
+    description = "SSH from outside"
     from_port = 22
     to_port = 22
     protocol = "tcp"
-  }
-
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0" ]
   }
 
   egress {
@@ -75,23 +67,21 @@ resource "aws_security_group" "wdgtl-worker-sg" {
     Name = "wdgtl-worker-sg"
   }
 
-  /*
   ingress {
-    cidr_blocks = [
-      "0.0.0.0/0"
-    ]
     from_port = 22
     to_port = 22
     protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
-  */
-
+  
+  /*
   ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  */
 
   egress {
     from_port   = 0
@@ -159,11 +149,12 @@ resource "aws_instance" "dev-node" {
 
 # Launch master node
 resource "aws_instance" "k8s_master" {
-  ami             = var.ami["master"]
-  instance_type   = var.instance_type["master"]
-  key_name        = aws_key_pair.k8s.key_name
-  security_groups = [aws_security_group.wdgtl-worker-sg.id]
-  subnet_id       = aws_subnet.wdgtl-public-subnet.id
+  ami                         = var.ami["master"]
+  instance_type               = var.instance_type["master"]
+  key_name                    = aws_key_pair.k8s.key_name
+  security_groups             = [aws_security_group.wdgtl-master-sg.id]
+  subnet_id                   = aws_subnet.wdgtl-public-subnet.id
+  associate_public_ip_address = true
 
   tags = {
     Name = "k8s-master"
@@ -192,16 +183,19 @@ provisioner "local-exec" {
 
 # Launch worker nodes
 resource "aws_instance" "k8s_worker" {
-  count         = var.worker_instance_count
-  ami           = var.ami["worker"]
-  instance_type = var.instance_type["worker"]
+  count                       = var.worker_instance_count
+  ami                         = var.ami["worker"]
+  instance_type               = var.instance_type["worker"]
+  key_name                    = aws_key_pair.k8s.key_name
+  vpc_security_group_ids      = [aws_security_group.wdgtl-worker-sg.id]
+  subnet_id                   = aws_subnet.wdgtl-public-subnet.id
+  depends_on                  = [aws_instance.k8s_master]
+  associate_public_ip_address = true
+
   tags = {
     Name = "k8s-worker-${count.index}"
   }
-  key_name               = aws_key_pair.k8s.key_name
-  vpc_security_group_ids = [aws_security_group.wdgtl-worker-sg.id]
-  subnet_id              = aws_subnet.wdgtl-public-subnet.id
-  depends_on             = [aws_instance.k8s_master]
+
   connection {
     type        = "ssh"
     user        = "ubuntu"
