@@ -89,7 +89,7 @@ resource "aws_instance" "k8s_master" {
   ami                         = var.ami["master"]
   instance_type               = var.instance_type["master"]
   key_name                    = aws_key_pair.k8s.key_name
-  security_groups             = [aws_security_group.wdgtl-master-sg.id]
+  vpc_security_group_ids      = [aws_security_group.wdgtl-master-sg.id]
   subnet_id                   = aws_subnet.wdgtl-public-subnet.id
   associate_public_ip_address = true
 
@@ -124,7 +124,7 @@ resource "aws_instance" "k8s_worker" {
   ami                         = var.ami["worker"]
   instance_type               = var.instance_type["worker"]
   key_name                    = aws_key_pair.k8s.key_name
-  security_groups             = [aws_security_group.wdgtl-worker-sg.id]
+  vpc_security_group_ids      = [aws_security_group.wdgtl-worker-sg.id]
   subnet_id                   = aws_subnet.wdgtl-public-subnet.id
   depends_on                  = [aws_instance.k8s_master]
   associate_public_ip_address = true

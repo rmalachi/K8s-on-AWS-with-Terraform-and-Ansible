@@ -1,6 +1,7 @@
 resource "aws_security_group" "wdgtl-master-sg" {
   name        = "wdgtl-master-sg"
   description = "wdgtl-master Security Group"
+  vpc_id      = aws_vpc.wdgtl-vpc.id
 
   ingress {
     description      = "SSH"
@@ -81,6 +82,7 @@ resource "aws_security_group" "wdgtl-master-sg" {
 resource "aws_security_group" "wdgtl-worker-sg" {
   name        = "wdgtl-worker-sg"
   description = "wdgtl-worker Security Group"
+  vpc_id      = aws_vpc.wdgtl-vpc.id
 
   ingress {
     description      = "SSH"
