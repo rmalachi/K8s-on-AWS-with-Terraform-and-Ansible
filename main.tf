@@ -33,68 +33,7 @@ resource "aws_subnet" "wdgtl-private-subnet" {
   }
 }
 
-resource "aws_security_group" "wdgtl-master-sg" {
-  name        = "wdgtl-master-sg"
-  description = "wdgtl master security group"
-  vpc_id      = aws_vpc.wdgtl-vpc.id
-
-  tags = {
-    Name = "wdgtl-master-sg"
-  }
-
-  ingress {
-    description = "SSH from outside"
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0" ]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-resource "aws_security_group" "wdgtl-worker-sg" {
-  name        = "wdgtl-worker-sg"
-  description = "wdgtl worker security group"
-  vpc_id      = aws_vpc.wdgtl-vpc.id
-
-  tags = {
-    Name = "wdgtl-worker-sg"
-  }
-
-  ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  
-  /*
-  ingress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  */
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-}
-
-
-
-resource "aws_internet_gateway" "wdgtl-gw" {
+resource "aws_internet_gateway" "tfrm-gw" {
   vpc_id = aws_vpc.wdgtl-vpc.id
 
   tags = {
@@ -120,6 +59,26 @@ resource "aws_route" "default-route" {
 resource "aws_route_table_association" "tfrm-public-assoc" {
   subnet_id      = aws_subnet.tfrm-public-subnet.id
   route_table_id = aws_route_table.tfrm-public-rt.id
+}
+
+resource "aws_security_group" "tfrm-sg" {
+  name        = "dev-sg"
+  description = "dev security group"
+  vpc_id      = aws_vpc.tfrm-vpc.id
+
+  ingress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 resource "aws_key_pair" "tfrm-auth" {
@@ -149,16 +108,13 @@ resource "aws_instance" "dev-node" {
 
 # Launch master node
 resource "aws_instance" "k8s_master" {
-  ami                         = var.ami["master"]
-  instance_type               = var.instance_type["master"]
-  key_name                    = aws_key_pair.k8s.key_name
-  security_groups             = [aws_security_group.wdgtl-master-sg.id]
-  subnet_id                   = aws_subnet.wdgtl-public-subnet.id
-  associate_public_ip_address = true
-
+  ami           = var.ami["master"]
+  instance_type = var.instance_type["master"]
   tags = {
     Name = "k8s-master"
   }
+  key_name        = aws_key_pair.k8s.key_name
+  security_groups = ["k8s_master_sg"]
 
   connection {
     type        = "ssh"
@@ -183,19 +139,15 @@ provisioner "local-exec" {
 
 # Launch worker nodes
 resource "aws_instance" "k8s_worker" {
-  count                       = var.worker_instance_count
-  ami                         = var.ami["worker"]
-  instance_type               = var.instance_type["worker"]
-  key_name                    = aws_key_pair.k8s.key_name
-  vpc_security_group_ids      = [aws_security_group.wdgtl-worker-sg.id]
-  subnet_id                   = aws_subnet.wdgtl-public-subnet.id
-  depends_on                  = [aws_instance.k8s_master]
-  associate_public_ip_address = true
-
+  count         = var.worker_instance_count
+  ami           = var.ami["worker"]
+  instance_type = var.instance_type["worker"]
   tags = {
     Name = "k8s-worker-${count.index}"
   }
-
+  key_name        = aws_key_pair.k8s.key_name
+  security_groups = ["k8s_worker_sg"]
+  depends_on      = [aws_instance.k8s_master]
   connection {
     type        = "ssh"
     user        = "ubuntu"
