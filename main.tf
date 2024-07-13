@@ -38,6 +38,10 @@ resource "aws_security_group" "wdgtl-master-sg" {
   description = "wdgtl master security group"
   vpc_id      = aws_vpc.wdgtl-vpc.id
 
+  tags = {
+    Name = "wdgtl-master-sg"
+  }
+
   ingress {
     cidr_blocks = [
       "0.0.0.0/0"
@@ -47,14 +51,12 @@ resource "aws_security_group" "wdgtl-master-sg" {
     protocol = "tcp"
   }
 
-  /*
   ingress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  */
 
   egress {
     from_port   = 0
@@ -69,6 +71,10 @@ resource "aws_security_group" "wdgtl-worker-sg" {
   description = "wdgtl worker security group"
   vpc_id      = aws_vpc.wdgtl-vpc.id
 
+  tags = {
+    Name = "wdgtl-worker-sg"
+  }
+
   /*
   ingress {
     cidr_blocks = [
@@ -78,6 +84,7 @@ resource "aws_security_group" "wdgtl-worker-sg" {
     to_port = 22
     protocol = "tcp"
   }
+  */
 
   ingress {
     from_port   = 0
@@ -92,7 +99,6 @@ resource "aws_security_group" "wdgtl-worker-sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  */
 
 }
 
@@ -153,14 +159,15 @@ resource "aws_instance" "dev-node" {
 
 # Launch master node
 resource "aws_instance" "k8s_master" {
-  ami           = var.ami["master"]
-  instance_type = var.instance_type["master"]
+  ami             = var.ami["master"]
+  instance_type   = var.instance_type["master"]
+  key_name        = aws_key_pair.k8s.key_name
+  security_groups = [aws_security_group.wdgtl-worker-sg.id]
+  subnet_id       = aws_subnet.wdgtl-public-subnet.id
+
   tags = {
     Name = "k8s-master"
   }
-  key_name        = aws_key_pair.k8s.key_name
-  security_groups = [aws_security_group.wdgtl-master-sg.id]
-  subnet_id       = aws_subnet.wdgtl-public-subnet.id
 
   connection {
     type        = "ssh"
