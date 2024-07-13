@@ -158,7 +158,7 @@ resource "aws_instance" "k8s_master" {
     Name = "k8s-master"
   }
   key_name        = aws_key_pair.k8s.key_name
-  security_groups = [aws_security_group.wdgtl-maser-sg.id]
+  security_groups = [aws_security_group.wdgtl-master-sg.id]
   subnet_id       = aws_subnet.wdgtl-public-subnet.id
 
   connection {
