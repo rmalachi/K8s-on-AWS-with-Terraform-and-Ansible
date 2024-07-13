@@ -105,8 +105,8 @@ echo "-------------Deploying Weavenet Pod Networking-------------"
 kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
 
 echo "-------------Creating file with join command-------------"
-echo `kubeadm token create --print-join-command` > ~/join-command.sh
+echo `kubeadm token create --print-join-command` > ./join-command.sh
 
-cat ~/join-command.sh
+cat ./join-command.sh
 
 echo "-------------End of section join command -------------"
