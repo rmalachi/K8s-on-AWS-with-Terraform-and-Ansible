@@ -1,16 +1,13 @@
 #!/usr/bin/bash
 set -e
 
-# Set hostname
 echo "-------------Setting hostname-------------"
 hostnamectl set-hostname $1
 
-# Disable swap
-echo "-------------Disabling swap-------------"
+echo "-------------Disable swap-------------"
 swapoff -a
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 
-# Install Containerd
 echo "-------------Installing Containerd-------------"
 wget https://github.com/containerd/containerd/releases/download/v1.7.4/containerd-1.7.4-linux-amd64.tar.gz
 tar Cxzvf /usr/local containerd-1.7.4-linux-amd64.tar.gz
@@ -20,18 +17,15 @@ mv containerd.service /usr/local/lib/systemd/system/containerd.service
 systemctl daemon-reload
 systemctl enable --now containerd
 
-# Install Runc
 echo "-------------Installing Runc-------------"
 wget https://github.com/opencontainers/runc/releases/download/v1.1.9/runc.amd64
 install -m 755 runc.amd64 /usr/local/sbin/runc
 
-# Install CNI
 echo "-------------Installing CNI-------------"
 wget https://github.com/containernetworking/plugins/releases/download/v1.2.0/cni-plugins-linux-amd64-v1.2.0.tgz
 mkdir -p /opt/cni/bin
 tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.2.0.tgz
 
-# Install CRICTL
 echo "-------------Installing CRICTL-------------"
 VERSION="v1.28.0" # check latest version in /releases page
 wget https://github.com/kubernetes-sigs/cri-tools/releases/download/$VERSION/crictl-$VERSION-linux-amd64.tar.gz
@@ -46,7 +40,6 @@ debug: false
 pull-image-on-create: false
 EOF
 
-# Forwarding IPv4 and letting iptables see bridged traffic
 echo "-------------Setting IPTables-------------"
 cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
 overlay
@@ -66,11 +59,10 @@ sysctl net.bridge.bridge-nf-call-iptables net.bridge.bridge-nf-call-ip6tables ne
 modprobe br_netfilter
 sysctl -p /etc/sysctl.conf
 
-# Install kubectl, kubelet and kubeadm
+echo "-------------Installing Kubectl, Kubelet and Kubeadm-------------"
 # --------------------------------------------------------------------------------------
 #                   ORIGINAL SECTION
 # --------------------------------------------------------------------------------------
-# echo "-------------Installing Kubectl, Kubelet and Kubeadm-------------"
 # apt-get update && sudo apt-get install -y apt-transport-https curl
 # curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
 
@@ -85,7 +77,6 @@ sysctl -p /etc/sysctl.conf
 # --------------------------------------------------------------------------------------
 #                   NEW SECTION
 # --------------------------------------------------------------------------------------
-
 apt-get install -y apt-transport-https ca-certificates curl
 mkdir /etc/apt/keyrings
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
@@ -95,7 +86,6 @@ apt-get update -y
 apt-get install -y kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
 # --------------------------------------------------------------------------------------
-
 
 echo "-------------Printing Kubeadm version-------------"
 kubeadm version
