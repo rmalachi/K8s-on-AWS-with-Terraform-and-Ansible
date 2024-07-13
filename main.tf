@@ -1,36 +1,47 @@
 # -------------------------------------------------------------------
 
 # Create a VPC
-resource "aws_vpc" "tfrm-vpc" {
+resource "aws_vpc" "wdgtl-vpc" {
   cidr_block           = "20.0.0.0/16"
   enable_dns_hostnames = true
   enable_dns_support   = true
 
   tags = {
-    name = "dev"
+    Name = "VPC-20.0.0.0"
   }
 }
 
-resource "aws_subnet" "tfrm-public-subnet" {
-  vpc_id                  = aws_vpc.tfrm-vpc.id
+resource "aws_subnet" "wdgtl-public-subnet" {
+  vpc_id                  = aws_vpc.wdgtl-vpc.id
   cidr_block              = "20.0.1.0/24"
   map_public_ip_on_launch = true
   availability_zone       = "us-east-1a"
 
   tags = {
-    Name = "dev-public"
+    Name = "public-subnet-us-east-1a-20.0.1.0"
+  }
+}
+
+resource "aws_subnet" "wdgtl-private-subnet" {
+  vpc_id                  = aws_vpc.wdgtl-vpc.id
+  cidr_block              = "20.0.2.0/24"
+  map_public_ip_on_launch = true
+  availability_zone       = "us-east-1a"
+
+  tags = {
+    Name = "private-subnet-us-east-1a-20.0.2.0"
+  }
+}
+
+resource "aws_internet_gateway" "tfrm-gw" {
+  vpc_id = aws_vpc.wdgtl-vpc.id
+
+  tags = {
+    Name = "wdgtl-igw"
   }
 }
 
 /* 
-resource "aws_internet_gateway" "tfrm-gw" {
-  vpc_id = aws_vpc.tfrm-vpc.id
-
-  tags = {
-    Name = "dev-igw"
-  }
-}
-
 resource "aws_route_table" "tfrm-public-rt" {
   vpc_id = aws_vpc.tfrm-vpc.id
 
@@ -94,13 +105,6 @@ resource "aws_instance" "dev-node" {
 */
 
 # -------------------------------------------------------------------
-
-
-
-
-
-
-
 
 # Launch master node
 resource "aws_instance" "k8s_master" {
