@@ -78,7 +78,6 @@ resource "aws_security_group" "wdgtl-worker-sg" {
     to_port = 22
     protocol = "tcp"
   }
-  */
 
   ingress {
     from_port   = 0
@@ -93,6 +92,8 @@ resource "aws_security_group" "wdgtl-worker-sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+  */
+
 }
 
 
