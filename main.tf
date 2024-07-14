@@ -31,8 +31,7 @@ resource "aws_subnet" "wdgtl-private-subnet" {
   }
 }
 
-/*
-resource "aws_internet_gateway" "wdgtl-gw" {
+resource "aws_internet_gateway" "wdgtl-igw" {
   vpc_id = aws_vpc.wdgtl-vpc.id
 
   tags = {
@@ -40,63 +39,35 @@ resource "aws_internet_gateway" "wdgtl-gw" {
   }
 }
 
-resource "aws_route_table" "tfrm-public-rt" {
-  vpc_id = aws_vpc.tfrm-vpc.id
+resource "aws_route_table" "wdgtl-rt" {
+  vpc_id = aws_vpc.wdgtl-vpc.id
 
   tags = {
-    Name = "dev-public-rt"
+    Name = "wdgtl-rt"
   }
 }
 
-resource "aws_route" "default-route" {
-  route_table_id         = aws_route_table.tfrm-public-rt.id
+resource "aws_route" "wdgtl-route" {
+  route_table_id         = aws_route_table.wdgtl-rt.id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.tfrm-gw.id
+  gateway_id             = aws_internet_gateway.wdgtl-igw.id
 }
 
-resource "aws_route_table_association" "tfrm-public-assoc" {
-  subnet_id      = aws_subnet.tfrm-public-subnet.id
-  route_table_id = aws_route_table.tfrm-public-rt.id
+resource "aws_route_table_association" "wdgtl-public-assoc" {
+  subnet_id      = aws_subnet.wdgtl-public-subnet.id
+  route_table_id = aws_route_table.wdgtl-rt.id
 }
-
-resource "aws_key_pair" "tfrm-auth" {
-  key_name   = "tfrm-key"
-  public_key = file("C:\\Users\\malac\\.ssh\\tfrm-key.pub")
-}
-
-resource "aws_instance" "dev-node" {
-  ami                    = data.aws_ami.server_ami.id
-  instance_type          = "t2.micro"
-  key_name               = aws_key_pair.tfrm-auth.id
-  vpc_security_group_ids = [aws_security_group.tfrm-sg.id]
-  subnet_id              = aws_subnet.tfrm-public-subnet.id
-  user_data              = file("userdata.tpl")
-
-  root_block_device {
-    volume_size = 10
-  }
-
-  tags = {
-    Name = "dev-node"
-  }
-}
-*/
-
-# -------------------------------------------------------------------
 
 # Launch master node
 resource "aws_instance" "k8s_master" {
-  ami                         = var.ami["master"]
-  instance_type               = var.instance_type["master"]
-  // key_name                 = aws_key_pair.k8s.key_name
-  // vpc_security_group_ids   = [aws_security_group.wdgtl-master-sg.id]
-  security_groups             = ["default"]
-  //subnet_id                 = aws_subnet.wdgtl-public-subnet.id
-  associate_public_ip_address = true
-
+  ami           = var.ami["master"]
+  instance_type = var.instance_type["master"]
   tags = {
     Name = "k8s-master"
   }
+  key_name        = aws_key_pair.k8s.key_name
+  security_groups = [aws_security_group.k8s_master.id]
+  subnet_id       = aws_subnet.wdgtl-public-subnet.id
 
   connection {
     type        = "ssh"
@@ -114,27 +85,26 @@ resource "aws_instance" "k8s_master" {
       "sudo sh /home/ubuntu/master.sh k8s-master"
     ]
   }
-provisioner "local-exec" {
+  provisioner "local-exec" {
     command = "ansible-playbook -i '${self.public_ip},' playbook.yml"
   }
 }
 
 # Launch worker nodes
 resource "aws_instance" "k8s_worker" {
-  count                       = var.worker_instance_count
-  ami                         = var.ami["worker"]
-  instance_type               = var.instance_type["worker"]
-  key_name                    = aws_key_pair.k8s.key_name
-  // vpc_security_group_ids   = [aws_security_group.wdgtl-worker-sg.id]
-  security_groups             = ["default"]
-  //subnet_id                 = aws_subnet.wdgtl-public-subnet.id
-  depends_on                  = [aws_instance.k8s_master]
-  associate_public_ip_address = true
-
+  count         = var.worker_instance_count
+  ami           = var.ami["worker"]
+  instance_type = var.instance_type["worker"]
   tags = {
     Name = "k8s-worker-${count.index}"
   }
+  key_name        = aws_key_pair.k8s.key_name
 
+  security_groups = [aws_security_group.k8s_worker.id]
+  subnet_id       = aws_subnet.wdgtl-public-subnet.id
+
+
+  depends_on      = [aws_instance.k8s_master]
   connection {
     type        = "ssh"
     user        = "ubuntu"
@@ -156,5 +126,4 @@ resource "aws_instance" "k8s_worker" {
       "sudo sh /home/ubuntu/join-command.sh"
     ]
   }
-
 }

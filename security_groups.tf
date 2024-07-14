@@ -1,6 +1,6 @@
-resource "aws_security_group" "wdgtl-master-sg" {
-  name        = "wdgtl-master-sg"
-  description = "wdgtl-master Security Group"
+resource "aws_security_group" "k8s_master" {
+  name        = "k8s_master_sg"
+  description = "k8s_master Security Group"
   vpc_id      = aws_vpc.wdgtl-vpc.id
 
   ingress {
@@ -75,13 +75,13 @@ resource "aws_security_group" "wdgtl-master-sg" {
   }
 
   tags = {
-    Name = "wdgtl-master-sg"
+    Name = "k8s_master_sg"
   }
 }
 
-resource "aws_security_group" "wdgtl-worker-sg" {
-  name        = "wdgtl-worker-sg"
-  description = "wdgtl-worker Security Group"
+resource "aws_security_group" "k8s_worker" {
+  name        = "k8s_worker_sg"
+  description = "k8s_worker Security Group"
   vpc_id      = aws_vpc.wdgtl-vpc.id
 
   ingress {
@@ -138,7 +138,6 @@ resource "aws_security_group" "wdgtl-worker-sg" {
   }
 
   tags = {
-    Name = "wdgtl-worker-sg"
+    Name = "k8s_worker_sg"
   }
 }
-
