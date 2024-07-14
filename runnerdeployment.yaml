@@ -1,0 +1,13 @@
+# Install 2 Runner in repository
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: arc-runner
+  namespace: actions-runner-system
+spec:
+  replicas: 2 
+  template:
+    spec:
+      repository: wdgtl-repo
+      labels:
+        - arc-runner-repo

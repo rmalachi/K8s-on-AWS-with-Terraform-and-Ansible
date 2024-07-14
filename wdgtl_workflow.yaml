@@ -1,0 +1,12 @@
+name: run main.py
+
+jobs:
+  build:
+    runs-on: <k8s pod by label>
+    steps:
+
+      - name: checkout repo
+        uses: https://github.com/sergey-vodwood-wdc/wdc-devops-assignment.git
+
+      - name: execute py script
+        run: python3 main.py

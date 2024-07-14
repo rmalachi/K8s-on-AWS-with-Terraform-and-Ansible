@@ -109,4 +109,37 @@ echo `kubeadm token create --print-join-command` > ./join-command.sh
 
 cat ./join-command.sh
 
-echo "-------------End of section join command -------------"
+echo "-------------End of section join command-------------"
+
+echo "-------------Install Helm-------------"
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+
+echo "--------------------------"
+echo "      HELM SECTION"
+echo "--------------------------"
+echo "-------------Install cert-manager-------------"
+helm repo add jetstack https://charts.jetstack.io
+
+helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.12.4 \
+   --set installCRDs=true
+
+echo "-------------GitHub Authentication-------------"
+kubectl create secret generic controller-manager -n actions-runner-system 
+--from-literal=app-id=<APP_ID>
+--from-literal=installation-id=<INSTALLATION_ID>
+--from-literal=private-key=<PRIVATE_KEY>
+
+echo "-------------Install ARC-------------"
+helm repo add actions-runner-controller https://actions-runner-controller.github.io/actions-runner-controller
+helm upgrade --install --namespace actions-runner-system --create-namespace -f values.yaml \
+             --wait actions-runner-controller actions-runner-controller/actions-runner-controller
+
+
+
+
+

@@ -1,0 +1,30 @@
+# values.yaml
+
+certManagerEnabled: true
+
+scope:
+  singleNamespace: false
+
+# disabling authSecret as we already created
+authSecret:
+  enabled: false
+
+githubWebhookServer:
+  enabled: false
+
+env:
+  - name: GITHUB_APP_ID
+    valueFrom:
+      secretKeyRef:
+        key: APP_ID
+        name: controller-manager
+  - name: GITHUB_APP_INSTALLATION_ID
+    valueFrom:
+      secretKeyRef:
+        key: INSTALLATION_ID
+        name: controller-manager
+  - name: GITHUB_APP_PRIVATE_KEY
+    valueFrom:
+      secretKeyRef:
+        key: PRIVATE_KEY
+        name: controller-manager
